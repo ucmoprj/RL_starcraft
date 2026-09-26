@@ -1,0 +1,7 @@
+# PySC2 from GitHub: the PyPI release (4.0.0) crashes on Python 3.11+.
+pysc2 @ https://github.com/google-deepmind/pysc2/archive/refs/heads/master.zip
+numpy>=1.26
+matplotlib>=3.8
+# Used from Lesson 3 (DQN) onwards:
+torch>=2.2
+gymnasium>=1.0

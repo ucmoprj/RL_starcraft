@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Large training outputs (plots in results/ are kept on purpose)
+*.npy
+*.pt
+*.SC2Replay
