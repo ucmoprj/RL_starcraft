@@ -35,8 +35,8 @@ python --version      # should print Python 3.11.x
 ## Step 3 — Get the course code and its packages
 
 ```bash
-git clone https://github.com/ucmoprj/RL_sarcraft.git
-cd RL_sarcraft
+git clone https://github.com/ucmoprj/RL_starcraft.git
+cd RL_starcraft
 
 python -m venv .venv
 .venv\Scripts\activate          # macOS: source .venv/bin/activate

@@ -43,7 +43,7 @@ All commands are run from the repository root, with the virtual environment acti
 ## Repository layout
 
 ```
-RL_sarcraft/
+RL_starcraft/
 ├── 00_setup/        installation guide and a check script
 ├── 01_rl_basics/    lesson notes + code
 ├── 02_q_learning/   lesson notes + code + results/
