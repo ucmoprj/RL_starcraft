@@ -100,7 +100,7 @@ The **dynamics** tell us the probability of landing in state $`s'`$ with reward 
 are in state $`s`$ and take action $`a`$:
 
 ```math
-p(s', r \mid s, a) = P(S_{t+1} = s',\ R_{t+1} = r \mid S_t = s,\ A_t = a) \tag{1}
+p(s', r \mid s, a) = P(S_{t+1} = s',\ R_{t+1} = r \mid S_t = s,\ A_t = a) \qquad (1)
 ```
 
 Read the bar "$`\mid`$" as "given". In our code, this is the method
@@ -119,7 +119,7 @@ The agent does not care only about the next reward, but about **all future rewar
 The **return** $`G_t`$ is the sum of future rewards, each one *discounted* by $`\gamma`$:
 
 ```math
-G_t = r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k\, r_{t+k+1} \tag{2}
+G_t = r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k\, r_{t+k+1} \qquad (2)
 ```
 
 **Why discount?**
@@ -136,7 +136,7 @@ $`G_t = 0 + 0.9 \times 0 + 0.9^2 \times 1 = 0.81`$.
 the next return:
 
 ```math
-G_t = r_{t+1} + \gamma \left( r_{t+2} + \gamma r_{t+3} + \dots \right) = r_{t+1} + \gamma\, G_{t+1} \tag{3}
+G_t = r_{t+1} + \gamma \left( r_{t+2} + \gamma r_{t+3} + \dots \right) = r_{t+1} + \gamma\, G_{t+1} \qquad (3)
 ```
 
 "Total future reward = reward now + discounted total future reward from the next step."
@@ -165,14 +165,14 @@ The **state-value function** of policy $`\pi`$ is the expected return when start
 state $`s`$ and following $`\pi`$ afterwards:
 
 ```math
-V^\pi(s) = \mathbb{E}_\pi\left[\, G_t \mid S_t = s \,\right] \tag{4}
+V^\pi(s) = \mathbb{E}_\pi\left[\, G_t \mid S_t = s \,\right] \qquad (4)
 ```
 
 The **action-value function** is the same, but we first take action $`a`$ and follow
 $`\pi`$ afterwards:
 
 ```math
-Q^\pi(s, a) = \mathbb{E}_\pi\left[\, G_t \mid S_t = s,\ A_t = a \,\right] \tag{5}
+Q^\pi(s, a) = \mathbb{E}_\pi\left[\, G_t \mid S_t = s,\ A_t = a \,\right] \qquad (5)
 ```
 
 Intuition: $`V(s)`$ answers "how good is it to **be here**?", and $`Q(s,a)`$ answers
@@ -198,7 +198,7 @@ To compute this expected value, we average over everything random, in order:
 This gives the **Bellman expectation equation**:
 
 ```math
-V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^\pi(s') \,\right] \tag{6}
+V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^\pi(s') \,\right] \qquad (6)
 ```
 
 It says: *the value of a state is the average of (reward + discounted value of where
@@ -245,20 +245,20 @@ V^*(s) = \max_\pi V^\pi(s), \qquad Q^*(s,a) = \max_\pi Q^\pi(s,a)
 If we know $`V^*`$, the value of taking action $`a`$ is one step of look-ahead:
 
 ```math
-Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^*(s') \,\right] \tag{7}
+Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^*(s') \,\right] \qquad (7)
 ```
 
 The best agent always picks the best action, so instead of *averaging* over actions
 (as in Eq. 6) we take the **maximum**. This is the **Bellman optimality equation**:
 
 ```math
-V^*(s) = \max_{a} \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^*(s') \,\right] \tag{8}
+V^*(s) = \max_{a} \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^*(s') \,\right] \qquad (8)
 ```
 
 Once we have $`V^*`$, the optimal policy simply picks the action with the highest $`Q^*`$:
 
 ```math
-\pi^*(s) = \arg\max_a Q^*(s, a) \tag{9}
+\pi^*(s) = \arg\max_a Q^*(s, a) \qquad (9)
 ```
 
 ($`\arg\max_a`$ means "the $`a`$ that gives the largest value".)

@@ -33,7 +33,7 @@ and you do not want to store them all. Let $`\bar{x}_n`$ be the average of the f
 A little algebra gives:
 
 ```math
-\bar{x}_n = \bar{x}_{n-1} + \frac{1}{n}\left( x_n - \bar{x}_{n-1} \right) \tag{1}
+\bar{x}_n = \bar{x}_{n-1} + \frac{1}{n}\left( x_n - \bar{x}_{n-1} \right) \qquad (1)
 ```
 
 *Example.* Numbers 4, 8, 6. Start with $`\bar{x}_1 = 4`$.
@@ -58,7 +58,7 @@ improve over time.
 From Lesson 1 (Eq. 7 and Eq. 8), the optimal action values satisfy:
 
 ```math
-Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma \max_{a'} Q^*(s', a') \,\right] \tag{2}
+Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma \max_{a'} Q^*(s', a') \,\right] \qquad (2)
 ```
 
 The right-hand side is an **expected value** (a probability-weighted average) of the
@@ -76,13 +76,13 @@ After each step $`(s, a, r, s')`$, compute the **TD target** (our one-sample gue
 the right-hand side of Eq. 2) and the **TD error** (how far off we were):
 
 ```math
-y = r + \gamma \max_{a'} Q(s', a'), \qquad \delta = y - Q(s, a) \tag{3}
+y = r + \gamma \max_{a'} Q(s', a'), \qquad \delta = y - Q(s, a) \qquad (3)
 ```
 
 Then move $`Q(s,a)`$ a small step toward the target, exactly like Eq. 1:
 
 ```math
-Q(s, a) \leftarrow Q(s, a) + \alpha\, \delta \tag{4}
+Q(s, a) \leftarrow Q(s, a) + \alpha\, \delta \qquad (4)
 ```
 
 If $`s'`$ is a **terminal** state, nothing comes after it, so $`y = r`$.
@@ -120,8 +120,7 @@ a =
 \begin{cases}
 \text{a random action} & \text{with probability } \varepsilon \\
 \arg\max_{a} Q(s, a) & \text{with probability } 1 - \varepsilon
-\end{cases}
-\tag{5}
+\end{cases} \qquad (5)
 ```
 
 We start with $`\varepsilon = 1`$ (explore all the time) and lower it linearly to
