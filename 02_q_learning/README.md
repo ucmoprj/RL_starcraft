@@ -1,10 +1,10 @@
 # Lesson 2 — Learning from Experience: Q-learning
 
-> **Goal:** learn the optimal action values $Q^*$ **without** a model of the world,
+> **Goal:** learn the optimal action values $`Q^*`$ **without** a model of the world,
 > just by playing, and use them to control a marine in StarCraft II.
 >
 > **You will learn:** sample averages, temporal-difference (TD) learning, the
-> Q-learning update, exploration vs exploitation, $\varepsilon$-greedy, designing
+> Q-learning update, exploration vs exploitation, $`\varepsilon`$-greedy, designing
 > states for a real game, state aliasing.
 >
 > **Time:** about 2–3 hours. **StarCraft II needed:** yes (from section 7).
@@ -14,7 +14,7 @@
 ## 1. Where we are
 
 In [Lesson 1](../01_rl_basics/) we computed the optimal policy with value iteration.
-It needed the model $p(s', r \mid s, a)$: a full list of what can happen after every
+It needed the model $`p(s', r \mid s, a)`$: a full list of what can happen after every
 action. StarCraft II gives us no such list. All we can do is:
 
 ```python
@@ -28,26 +28,26 @@ the optimal policy? Yes, and the idea is surprisingly simple.
 
 ## 2. Idea 1: averages can be learned one sample at a time
 
-Suppose you want the average of numbers $x_1, x_2, x_3, \dots$ that arrive one by one,
-and you do not want to store them all. Let $\bar{x}_n$ be the average of the first $n$.
+Suppose you want the average of numbers $`x_1, x_2, x_3, \dots`$ that arrive one by one,
+and you do not want to store them all. Let $`\bar{x}_n`$ be the average of the first $`n`$.
 A little algebra gives:
 
-$$
+```math
 \bar{x}_n = \bar{x}_{n-1} + \frac{1}{n}\left( x_n - \bar{x}_{n-1} \right) \tag{1}
-$$
+```
 
-*Example.* Numbers 4, 8, 6. Start with $\bar{x}_1 = 4$.
-Then $\bar{x}_2 = 4 + \frac12(8 - 4) = 6$, and $\bar{x}_3 = 6 + \frac13(6 - 6) = 6$. ✔
+*Example.* Numbers 4, 8, 6. Start with $`\bar{x}_1 = 4`$.
+Then $`\bar{x}_2 = 4 + \frac12(8 - 4) = 6`$, and $`\bar{x}_3 = 6 + \frac13(6 - 6) = 6`$. ✔
 
 Read Eq. 1 as:
 
-$$
+```math
 \text{new estimate} = \text{old estimate} + \text{step size} \times \left( \text{target} - \text{old estimate} \right)
-$$
+```
 
 The part in brackets is the **error**: how wrong our estimate was on this sample.
 We move the estimate a little bit toward the new sample. In RL we usually replace
-$\frac{1}{n}$ by a small constant $\alpha$ (the **learning rate**), which gives more
+$`\frac{1}{n}`$ by a small constant $`\alpha`$ (the **learning rate**), which gives more
 weight to recent samples. That is useful because, as we will see, our targets
 improve over time.
 
@@ -57,14 +57,14 @@ improve over time.
 
 From Lesson 1 (Eq. 7 and Eq. 8), the optimal action values satisfy:
 
-$$
+```math
 Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma \max_{a'} Q^*(s', a') \,\right] \tag{2}
-$$
+```
 
 The right-hand side is an **expected value** (a probability-weighted average) of the
-quantity in brackets. We cannot compute the sum without $p$, but every time we play
-action $a$ in state $s$, the game hands us one sample $(r, s')$ drawn from exactly
-that distribution $p(s', r \mid s, a)$.
+quantity in brackets. We cannot compute the sum without $`p`$, but every time we play
+action $`a`$ in state $`s`$, the game hands us one sample $`(r, s')`$ drawn from exactly
+that distribution $`p(s', r \mid s, a)`$.
 
 So we can average the samples with Eq. 1. That is all Q-learning is.
 
@@ -72,20 +72,20 @@ So we can average the samples with Eq. 1. That is all Q-learning is.
 
 ## 4. The Q-learning update
 
-After each step $(s, a, r, s')$, compute the **TD target** (our one-sample guess of
+After each step $`(s, a, r, s')`$, compute the **TD target** (our one-sample guess of
 the right-hand side of Eq. 2) and the **TD error** (how far off we were):
 
-$$
+```math
 y = r + \gamma \max_{a'} Q(s', a'), \qquad \delta = y - Q(s, a) \tag{3}
-$$
+```
 
-Then move $Q(s,a)$ a small step toward the target, exactly like Eq. 1:
+Then move $`Q(s,a)`$ a small step toward the target, exactly like Eq. 1:
 
-$$
+```math
 Q(s, a) \leftarrow Q(s, a) + \alpha\, \delta \tag{4}
-$$
+```
 
-If $s'$ is a **terminal** state, nothing comes after it, so $y = r$.
+If $`s'`$ is a **terminal** state, nothing comes after it, so $`y = r`$.
 
 In [`q_learning.py`](q_learning.py):
 
@@ -96,39 +96,39 @@ td_error = td_target - self.Q[state][action]                  # Eq. 3
 self.Q[state][action] += self.alpha * td_error                # Eq. 4
 ```
 
-**Learning a guess from a guess.** Notice that the target $y$ uses $Q(s', \cdot)$,
+**Learning a guess from a guess.** Notice that the target $`y`$ uses $`Q(s', \cdot)`$,
 which is itself only an estimate. This is called **bootstrapping**. At first all
 estimates are 0 and only the step that reaches the beacon gets a real signal
-($r = 1$). On later episodes that value flows backwards, one step at a time, to the
+($`r = 1`$). On later episodes that value flows backwards, one step at a time, to the
 states before it. Section 6 shows this happening.
 
-The name **temporal-difference (TD)** learning comes from the TD error $\delta$: it is
+The name **temporal-difference (TD)** learning comes from the TD error $`\delta`$: it is
 the difference between two estimates at successive time steps.
 
 ---
 
 ## 5. Exploration vs exploitation
 
-If the agent always picks the action with the highest current $Q$ (**exploitation**),
+If the agent always picks the action with the highest current $`Q`$ (**exploitation**),
 it gets stuck: early on, all values are 0, and it will never try the actions that
 might turn out to be better. It must sometimes try other actions (**exploration**).
 
-The simplest fix is **$\varepsilon$-greedy**:
+The simplest fix is **$`\varepsilon`$-greedy**:
 
-$$
+```math
 a =
 \begin{cases}
 \text{a random action} & \text{with probability } \varepsilon \\
 \arg\max_{a} Q(s, a) & \text{with probability } 1 - \varepsilon
 \end{cases}
 \tag{5}
-$$
+```
 
-We start with $\varepsilon = 1$ (explore all the time) and lower it linearly to
-$0.05$ over the first 60% of training (`linear_schedule` in the code). When several
+We start with $`\varepsilon = 1`$ (explore all the time) and lower it linearly to
+$`0.05`$ over the first 60% of training (`linear_schedule` in the code). When several
 actions tie for the best value, we pick one of them at random.
 
-**Off-policy.** The agent *behaves* $\varepsilon$-greedily, but the $\max$ in Eq. 3
+**Off-policy.** The agent *behaves* $`\varepsilon`$-greedily, but the $`\max`$ in Eq. 3
 means it *learns about* the greedy policy. Learning about one policy while following
 another is called **off-policy** learning. It is why Q-learning can explore freely
 and still learn the optimal values.
@@ -174,7 +174,7 @@ v v v v v
 ![GridWorld learning curve](results/gridworld_learning_curve.png)
 
 The number of steps drops from about 32 (mostly random) to about 5, the length of the
-shortest path. The last few episodes are slightly above 5 because $\varepsilon = 0.05$
+shortest path. The last few episodes are slightly above 5 because $`\varepsilon = 0.05`$
 still makes a random move now and then.
 
 **Compare with value iteration.** The policy is not identical to Lesson 1's. Along
@@ -196,8 +196,8 @@ matter as much as the algorithm.
 
 **State.** Where is the beacon *relative to* the marine? We take the offset
 (beacon − marine) in screen pixels, divide it into cells of 4 × 4 pixels, and clip it
-to at most 8 cells in each direction. That gives $17 \times 17 = 289$ states, and
-the Q-table has $289 \times 8 = 2312$ numbers.
+to at most 8 cells in each direction. That gives $`17 \times 17 = 289`$ states, and
+the Q-table has $`289 \times 8 = 2312`$ numbers.
 
 Using the **relative** position is a good trick: "the beacon is 3 cells to the
 right" needs the same action no matter where on the map the marine stands, so the
@@ -222,7 +222,7 @@ scripted policy scores about 23 per episode.
 The game episode does not end when the beacon is reached; the beacon just moves.
 But the next beacon position is random and has nothing to do with the action we
 took. So for learning we treat "reached the beacon" as the end of a sub-task:
-$y = r = 1$ with no future term (`terminal_on_reward=True` in the code).
+$`y = r = 1`$ with no future term (`terminal_on_reward=True` in the code).
 
 The 120-second time limit is **not** a terminal state. The marine did nothing wrong
 there; the clock just ran out. We do not cut the future off at a time-out.
@@ -263,14 +263,14 @@ Each cell is a **state**: where the beacon is relative to the marine. The red st
 the middle means "the beacon is right here". The cell three to the right of the star
 means "the beacon is 3 cells to my right", and its arrow says what the agent does
 there. The arrows point **away from the centre**, which is correct: if the beacon is
-to your right, walk right. The colour is $\max_a Q(s, a)$: bright near the centre
+to your right, walk right. The colour is $`\max_a Q(s, a)`$: bright near the centre
 (the reward is close), dark far away (the reward is many discounted steps away, as
-$\gamma^{d}$ in Lesson 1).
+$`\gamma^{d}`$ in Lesson 1).
 
 Near the edges the arrows are messier. Those states are visited less often, the same
 effect as the top-right corner of GridWorld.
 
-Why not 23? With $\varepsilon = 0.05$ the agent still takes a random step now and
+Why not 23? With $`\varepsilon = 0.05`$ the agent still takes a random step now and
 then, and the state is coarse (4-pixel cells), so it sometimes zig-zags. Experiment 4
 in section 9 explores the state size.
 
@@ -301,7 +301,7 @@ Change one thing at a time. Predict first, then run.
 ## 10. The limit of tables
 
 Our table has one number per (state, action). That worked because we squeezed the
-game into 289 states by hand. For real StarCraft screens, $84 \times 84$ images with
+game into 289 states by hand. For real StarCraft screens, $`84 \times 84`$ images with
 many layers, the number of possible states is astronomically large; a table is
 impossible, and the agent could never visit each state even once.
 
@@ -314,33 +314,33 @@ topic of Lesson 3.
 
 ## 11. Exercises
 
-1. Starting with all $Q = 0$, $\alpha = 0.1$, $\gamma = 0.9$: the agent is in state $s$,
-   takes action $a$, gets $r = 1$ and reaches a terminal state. What is $Q(s,a)$ after
+1. Starting with all $`Q = 0`$, $`\alpha = 0.1`$, $`\gamma = 0.9`$: the agent is in state $`s`$,
+   takes action $`a`$, gets $`r = 1`$ and reaches a terminal state. What is $`Q(s,a)`$ after
    the update? And after the same thing happens a second time?
-2. Now the agent is in $s_0$, takes $a_0$, gets $r = 0$ and lands in the $s$ from
+2. Now the agent is in $`s_0`$, takes $`a_0`$, gets $`r = 0`$ and lands in the $`s`$ from
    exercise 1 (after the second update). All other values are still 0. What is the
-   new $Q(s_0, a_0)$?
-3. In exercise 2, the value "flowed" from $s$ back to $s_0$. How many episodes are
+   new $`Q(s_0, a_0)`$?
+3. In exercise 2, the value "flowed" from $`s`$ back to $`s_0`$. How many episodes are
    needed, at the very least, for any value to reach the start state of GridWorld,
    5 steps from the beacon?
-4. Why does Eq. 3 use $\max_{a'} Q(s', a')$ and not the $Q$ of the action the agent
+4. Why does Eq. 3 use $`\max_{a'} Q(s', a')`$ and not the $`Q`$ of the action the agent
    actually takes next?
 
 <details>
 <summary>Answers</summary>
 
-1. First: $\delta = 1 - 0 = 1$, so $Q = 0 + 0.1 \times 1 = 0.1$.
-   Second: $\delta = 1 - 0.1 = 0.9$, so $Q = 0.1 + 0.1 \times 0.9 = 0.19$.
-   Each time, $Q$ moves 10% of the remaining way toward 1.
-2. $y = 0 + 0.9 \times 0.19 = 0.171$, $\delta = 0.171$, so $Q(s_0,a_0) = 0.0171$.
+1. First: $`\delta = 1 - 0 = 1`$, so $`Q = 0 + 0.1 \times 1 = 0.1`$.
+   Second: $`\delta = 1 - 0.1 = 0.9`$, so $`Q = 0.1 + 0.1 \times 0.9 = 0.19`$.
+   Each time, $`Q`$ moves 10% of the remaining way toward 1.
+2. $`y = 0 + 0.9 \times 0.19 = 0.171`$, $`\delta = 0.171`$, so $`Q(s_0,a_0) = 0.0171`$.
 3. At least 5. In each episode, value can move back by one step along the path
    (the update happens when you *leave* a state, using the next state's value as it
    is at that moment). This is one reason Q-learning can be slow when rewards are
    rare.
-4. Because we want $Q^*$, the value of acting **optimally** from $s'$ onwards (Eq. 2),
+4. Because we want $`Q^*`$, the value of acting **optimally** from $`s'`$ onwards (Eq. 2),
    not the value of our exploring behaviour. Using the action actually taken gives a
    different algorithm called **SARSA**, which learns the value of the
-   $\varepsilon$-greedy policy itself (on-policy).
+   $`\varepsilon`$-greedy policy itself (on-policy).
 
 </details>
 
@@ -351,13 +351,13 @@ topic of Lesson 3.
 | Idea | Equation | In one line |
 |---|---|---|
 | incremental average | Eq. 1 | estimate += step · (sample − estimate) |
-| TD target / TD error | Eq. 3 | $y = r + \gamma \max Q(s',\cdot)$, $\delta = y - Q(s,a)$ |
-| Q-learning update | Eq. 4 | $Q(s,a) \mathrel{+}= \alpha \delta$ |
-| $\varepsilon$-greedy | Eq. 5 | random with probability $\varepsilon$, else best |
+| TD target / TD error | Eq. 3 | $`y = r + \gamma \max Q(s',\cdot)`$, $`\delta = y - Q(s,a)`$ |
+| Q-learning update | Eq. 4 | $`Q(s,a) \mathrel{+}= \alpha \delta`$ |
+| $`\varepsilon`$-greedy | Eq. 5 | random with probability $`\varepsilon`$, else best |
 
-**For the curious.** Tabular Q-learning is proven to converge to $Q^*$ if every
+**For the curious.** Tabular Q-learning is proven to converge to $`Q^*`$ if every
 (state, action) pair is tried infinitely often and the learning rate shrinks in the
-right way ($\sum_t \alpha_t = \infty$ and $\sum_t \alpha_t^2 < \infty$). See
+right way ($`\sum_t \alpha_t = \infty`$ and $`\sum_t \alpha_t^2 \lt \infty`$). See
 Sutton & Barto, chapter 6.5.
 
 **Further reading:** Sutton & Barto, chapter 6 (Temporal-difference learning).

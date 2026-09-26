@@ -25,9 +25,9 @@ flowchart LR
 
 This loop repeats, one **time step** at a time:
 
-1. The agent observes the current **state** $s_t$ ("where am I?").
-2. It chooses an **action** $a_t$ ("what do I do?").
-3. The environment moves to a new state $s_{t+1}$ and gives a reward $r_{t+1}$.
+1. The agent observes the current **state** $`s_t`$ ("where am I?").
+2. It chooses an **action** $`a_t`$ ("what do I do?").
+3. The environment moves to a new state $`s_{t+1}`$ and gives a reward $`r_{t+1}`$.
 
 In StarCraft II's *MoveToBeacon* mini-game:
 
@@ -66,21 +66,21 @@ y 0  . . . . .       M = marine (starts at x=1, y=2)
 
 You only need two ideas from probability.
 
-**Probability.** $P(X = x)$ is how likely it is that the random quantity $X$ takes the
-value $x$. All probabilities are between 0 and 1 and add up to 1.
+**Probability.** $`P(X = x)`$ is how likely it is that the random quantity $`X`$ takes the
+value $`x`$. All probabilities are between 0 and 1 and add up to 1.
 
-**Expected value (average).** If a random quantity $X$ takes value $x$ with probability
-$P(X=x)$, its expected value is the probability-weighted average:
+**Expected value (average).** If a random quantity $`X`$ takes value $`x`$ with probability
+$`P(X=x)`$, its expected value is the probability-weighted average:
 
-$$
+```math
 \mathbb{E}[X] = \sum_x P(X = x)\, x
-$$
+```
 
 *Example.* A game pays you 10 with probability 0.2 and 0 with probability 0.8.
-Then $\mathbb{E}[\text{pay}] = 0.2 \times 10 + 0.8 \times 0 = 2$.
+Then $`\mathbb{E}[\text{pay}] = 0.2 \times 10 + 0.8 \times 0 = 2`$.
 If you played many times, you would earn 2 per game on average.
 
-The symbol $\sum$ ("sigma") just means *add up*. For example $\sum_{k=0}^{2} x_k = x_0 + x_1 + x_2$.
+The symbol $`\sum`$ ("sigma") just means *add up*. For example $`\sum_{k=0}^{2} x_k = x_0 + x_1 + x_2`$.
 
 ---
 
@@ -90,20 +90,20 @@ An RL problem is written down as an **MDP**, which has five ingredients:
 
 | Symbol | Meaning | GridWorld |
 |---|---|---|
-| $\mathcal{S}$ | set of states | 23 cells |
-| $\mathcal{A}$ | set of actions | up, right, down, left |
-| $p(s', r \mid s, a)$ | dynamics: how the world responds | moves are deterministic (`slip=0`) |
-| $r$ | reward | +1 at the beacon |
-| $\gamma$ | discount factor, $0 \le \gamma \le 1$ | 0.9 |
+| $`\mathcal{S}`$ | set of states | 23 cells |
+| $`\mathcal{A}`$ | set of actions | up, right, down, left |
+| $`p(s', r \mid s, a)`$ | dynamics: how the world responds | moves are deterministic (`slip=0`) |
+| $`r`$ | reward | +1 at the beacon |
+| $`\gamma`$ | discount factor, $`0 \le \gamma \le 1`$ | 0.9 |
 
-The **dynamics** tell us the probability of landing in state $s'$ with reward $r$ if we
-are in state $s$ and take action $a$:
+The **dynamics** tell us the probability of landing in state $`s'`$ with reward $`r`$ if we
+are in state $`s`$ and take action $`a`$:
 
-$$
+```math
 p(s', r \mid s, a) = P(S_{t+1} = s',\ R_{t+1} = r \mid S_t = s,\ A_t = a) \tag{1}
-$$
+```
 
-Read the bar "$\mid$" as "given". In our code, this is the method
+Read the bar "$`\mid`$" as "given". In our code, this is the method
 `GridWorld.transitions(state, action)`, which returns a list of
 `(probability, next_state, reward, done)`.
 
@@ -116,28 +116,28 @@ If you know where the marine is now, knowing how it got there does not help.
 ## 5. Return: what the agent wants to maximise
 
 The agent does not care only about the next reward, but about **all future rewards**.
-The **return** $G_t$ is the sum of future rewards, each one *discounted* by $\gamma$:
+The **return** $`G_t`$ is the sum of future rewards, each one *discounted* by $`\gamma`$:
 
-$$
+```math
 G_t = r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k\, r_{t+k+1} \tag{2}
-$$
+```
 
 **Why discount?**
 
 - A reward now is worth more than the same reward later (like money).
 - It makes the agent prefer **shorter** paths: reaching the beacon in 3 steps gives
-  $\gamma^2 = 0.81$, in 5 steps gives $\gamma^4 \approx 0.66$.
+  $`\gamma^2 = 0.81`$, in 5 steps gives $`\gamma^4 \approx 0.66`$.
 - It keeps the sum finite even if the game never ends.
 
-*Worked example* ($\gamma = 0.9$). Rewards after time $t$ are $0, 0, 1$:
-$G_t = 0 + 0.9 \times 0 + 0.9^2 \times 1 = 0.81$.
+*Worked example* ($`\gamma = 0.9`$). Rewards after time $`t`$ are $`0, 0, 1`$:
+$`G_t = 0 + 0.9 \times 0 + 0.9^2 \times 1 = 0.81`$.
 
-**A very useful trick.** Pull out the first reward, and what is left is $\gamma$ times
+**A very useful trick.** Pull out the first reward, and what is left is $`\gamma`$ times
 the next return:
 
-$$
+```math
 G_t = r_{t+1} + \gamma \left( r_{t+2} + \gamma r_{t+3} + \dots \right) = r_{t+1} + \gamma\, G_{t+1} \tag{3}
-$$
+```
 
 "Total future reward = reward now + discounted total future reward from the next step."
 Every algorithm in this course is built on this one line.
@@ -146,14 +146,14 @@ Every algorithm in this course is built on this one line.
 
 ## 6. Policy: how the agent behaves
 
-A **policy** $\pi$ is the agent's rule for choosing actions. In general it is a
+A **policy** $`\pi`$ is the agent's rule for choosing actions. In general it is a
 probability:
 
-$$
+```math
 \pi(a \mid s) = \text{probability of choosing action } a \text{ in state } s
-$$
+```
 
-- The **random policy** picks each of the 4 moves with probability $\frac14$.
+- The **random policy** picks each of the 4 moves with probability $`\frac14`$.
 - A **deterministic policy** always picks the same action in a given state,
   like the arrow maps you will see below.
 
@@ -161,21 +161,21 @@ $$
 
 ## 7. Value functions: how good is a state?
 
-The **state-value function** of policy $\pi$ is the expected return when starting in
-state $s$ and following $\pi$ afterwards:
+The **state-value function** of policy $`\pi`$ is the expected return when starting in
+state $`s`$ and following $`\pi`$ afterwards:
 
-$$
+```math
 V^\pi(s) = \mathbb{E}_\pi\left[\, G_t \mid S_t = s \,\right] \tag{4}
-$$
+```
 
-The **action-value function** is the same, but we first take action $a$ and follow
-$\pi$ afterwards:
+The **action-value function** is the same, but we first take action $`a`$ and follow
+$`\pi`$ afterwards:
 
-$$
+```math
 Q^\pi(s, a) = \mathbb{E}_\pi\left[\, G_t \mid S_t = s,\ A_t = a \,\right] \tag{5}
-$$
+```
 
-Intuition: $V(s)$ answers "how good is it to **be here**?", and $Q(s,a)$ answers
+Intuition: $`V(s)`$ answers "how good is it to **be here**?", and $`Q(s,a)`$ answers
 "how good is it to **do this here**?". By definition the value of a terminal state
 (the beacon) is 0, because no more rewards can come after the episode ends.
 
@@ -185,28 +185,28 @@ Intuition: $V(s)$ answers "how good is it to **be here**?", and $Q(s,a)$ answers
 
 Put Eq. 3 inside Eq. 4:
 
-$$
+```math
 V^\pi(s) = \mathbb{E}_\pi\left[\, r_{t+1} + \gamma\, G_{t+1} \mid S_t = s \,\right]
-$$
+```
 
 To compute this expected value, we average over everything random, in order:
 
-1. which action we choose: probability $\pi(a \mid s)$,
-2. where we land and what reward we get: probability $p(s', r \mid s, a)$,
-3. what happens afterwards: on average that is $V^\pi(s')$ by definition.
+1. which action we choose: probability $`\pi(a \mid s)`$,
+2. where we land and what reward we get: probability $`p(s', r \mid s, a)`$,
+3. what happens afterwards: on average that is $`V^\pi(s')`$ by definition.
 
 This gives the **Bellman expectation equation**:
 
-$$
+```math
 V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^\pi(s') \,\right] \tag{6}
-$$
+```
 
 It says: *the value of a state is the average of (reward + discounted value of where
 you land)*. The value of one state is written in terms of the values of its neighbours.
 
 ### Turning the equation into an algorithm
 
-We do not know $V^\pi$ yet, but we can **guess** (all zeros) and then use Eq. 6 as an
+We do not know $`V^\pi`$ yet, but we can **guess** (all zeros) and then use Eq. 6 as an
 update rule: plug the current guess into the right-hand side to get a better guess
 on the left. Repeat until nothing changes. This is **iterative policy evaluation**.
 
@@ -238,30 +238,30 @@ standing next to the beacon will probably stumble onto it soon.
 The random policy is bad. What is the **best** we could possibly do?
 The optimal value functions are the largest values achievable by any policy:
 
-$$
+```math
 V^*(s) = \max_\pi V^\pi(s), \qquad Q^*(s,a) = \max_\pi Q^\pi(s,a)
-$$
+```
 
-If we know $V^*$, the value of taking action $a$ is one step of look-ahead:
+If we know $`V^*`$, the value of taking action $`a`$ is one step of look-ahead:
 
-$$
+```math
 Q^*(s, a) = \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^*(s') \,\right] \tag{7}
-$$
+```
 
 The best agent always picks the best action, so instead of *averaging* over actions
 (as in Eq. 6) we take the **maximum**. This is the **Bellman optimality equation**:
 
-$$
+```math
 V^*(s) = \max_{a} \sum_{s', r} p(s', r \mid s, a) \left[\, r + \gamma\, V^*(s') \,\right] \tag{8}
-$$
+```
 
-Once we have $V^*$, the optimal policy simply picks the action with the highest $Q^*$:
+Once we have $`V^*`$, the optimal policy simply picks the action with the highest $`Q^*`$:
 
-$$
+```math
 \pi^*(s) = \arg\max_a Q^*(s, a) \tag{9}
-$$
+```
 
-($\arg\max_a$ means "the $a$ that gives the largest value".)
+($`\arg\max_a`$ means "the $`a`$ that gives the largest value".)
 
 ### Value iteration
 
@@ -292,10 +292,10 @@ Optimal policy (B = beacon, # = wall):
 > > > > B
 ```
 
-**Check the math yourself.** From the start cell $(1, 2)$ the shortest path to the
+**Check the math yourself.** From the start cell $`(1, 2)`$ the shortest path to the
 beacon takes 5 steps, and the only reward is the +1 on the last step. By Eq. 2 the
-return is $\gamma^4 = 0.9^4 = 0.6561$, exactly what the table shows. In general, with
-deterministic moves, $V^*(s) = \gamma^{d-1}$ where $d$ is the distance to the beacon.
+return is $`\gamma^4 = 0.9^4 = 0.6561`$, exactly what the table shows. In general, with
+deterministic moves, $`V^*(s) = \gamma^{d-1}`$ where $`d`$ is the distance to the beacon.
 
 ---
 
@@ -324,35 +324,35 @@ the first one. Discounting is what makes the agent *hurry*.
 ## 11. The catch
 
 Both algorithms above use `env.transitions(...)`, the full model
-$p(s', r \mid s, a)$. This is called **planning**: we computed the answer without ever
+$`p(s', r \mid s, a)`$. This is called **planning**: we computed the answer without ever
 playing.
 
 In StarCraft II we have **no such model**. We cannot ask the game for a list of
 probabilities; we can only *play* and see what happens. In [Lesson 2](../02_q_learning/)
-we remove the model and learn $Q^*$ from experience alone. That is **Q-learning**.
+we remove the model and learn $`Q^*`$ from experience alone. That is **Q-learning**.
 
 ---
 
 ## 12. Exercises
 
-1. Compute $G_0$ by hand for rewards $r_1, r_2, r_3 = 0, 0, 1$ with $\gamma = 0.5$.
-2. Using Eq. 6, write out $V^\pi$ for the cell just above the beacon $(4, 3)$ under
+1. Compute $`G_0`$ by hand for rewards $`r_1, r_2, r_3 = 0, 0, 1`$ with $`\gamma = 0.5`$.
+2. Using Eq. 6, write out $`V^\pi`$ for the cell just above the beacon $`(4, 3)`$ under
    the random policy. Which neighbour values appear?
-3. Why is $V^*$ in the top-right corner $(4, 0)$ equal to $0.729$?
+3. Why is $`V^*`$ in the top-right corner $`(4, 0)`$ equal to $`0.729`$?
 4. In `value_iteration.py`, replace `max(...)` in Eq. 8 with the average over actions.
    Which algorithm did you just rebuild?
 
 <details>
 <summary>Answers</summary>
 
-1. $G_0 = 0 + 0.5 \times 0 + 0.5^2 \times 1 = 0.25$.
-2. Each action has probability $\frac14$. Up goes to $(4,2)$, left goes to $(3,3)$,
-   right hits the edge and stays at $(4,3)$, down reaches the beacon with reward 1 and
+1. $`G_0 = 0 + 0.5 \times 0 + 0.5^2 \times 1 = 0.25`$.
+2. Each action has probability $`\frac14`$. Up goes to $`(4,2)`$, left goes to $`(3,3)`$,
+   right hits the edge and stays at $`(4,3)`$, down reaches the beacon with reward 1 and
    the episode ends. So
-   $V(4,3) = \frac14\left[\gamma V(4,2)\right] + \frac14\left[\gamma V(4,3)\right] + \frac14\left[1\right] + \frac14\left[\gamma V(3,3)\right]$.
-   Note that $V(4,3)$ appears on both sides; the iteration takes care of that.
-3. It is 4 steps away from the beacon, so $\gamma^{3} = 0.9^3 = 0.729$.
-4. Policy evaluation of the random policy (Eq. 6 with $\pi(a \mid s) = \frac14$).
+   $`V(4,3) = \frac14\left[\gamma V(4,2)\right] + \frac14\left[\gamma V(4,3)\right] + \frac14\left[1\right] + \frac14\left[\gamma V(3,3)\right]`$.
+   Note that $`V(4,3)`$ appears on both sides; the iteration takes care of that.
+3. It is 4 steps away from the beacon, so $`\gamma^{3} = 0.9^3 = 0.729`$.
+4. Policy evaluation of the random policy (Eq. 6 with $`\pi(a \mid s) = \frac14`$).
 
 </details>
 
@@ -362,13 +362,13 @@ we remove the model and learn $Q^*$ from experience alone. That is **Q-learning*
 
 | Symbol | Name | One-line meaning |
 |---|---|---|
-| $s, a, r$ | state, action, reward | where I am, what I do, what I get |
-| $\gamma$ | discount factor | how much the future matters |
-| $G_t$ | return | discounted sum of future rewards (Eq. 2) |
-| $\pi(a \mid s)$ | policy | how the agent chooses actions |
-| $V^\pi(s)$ | state value | expected return from $s$ under $\pi$ (Eq. 4) |
-| $Q^\pi(s,a)$ | action value | expected return after doing $a$ in $s$ (Eq. 5) |
-| Eq. 6 | Bellman expectation | value = average of (reward + $\gamma$ · next value) |
+| $`s, a, r`$ | state, action, reward | where I am, what I do, what I get |
+| $`\gamma`$ | discount factor | how much the future matters |
+| $`G_t`$ | return | discounted sum of future rewards (Eq. 2) |
+| $`\pi(a \mid s)`$ | policy | how the agent chooses actions |
+| $`V^\pi(s)`$ | state value | expected return from $`s`$ under $`\pi`$ (Eq. 4) |
+| $`Q^\pi(s,a)`$ | action value | expected return after doing $`a`$ in $`s`$ (Eq. 5) |
+| Eq. 6 | Bellman expectation | value = average of (reward + $`\gamma`$ · next value) |
 | Eq. 8 | Bellman optimality | value = **max** over actions of the same thing |
 
 **Further reading:** Sutton & Barto, *Reinforcement Learning: An Introduction* (2nd ed.),
