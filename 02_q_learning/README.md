@@ -9,6 +9,14 @@
 >
 > **Time:** about 2–3 hours. **StarCraft II needed:** yes (from section 7).
 
+> **New to this? Warm up first.** The walkthrough runs Q-learning on a 4-cell corridor and
+> prints every update, so you can follow each number by hand. It runs in your browser,
+> with nothing to install:
+>
+> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ucmoprj/RL_starcraft/blob/main/02_q_learning/walkthrough.ipynb)
+>
+> Or locally: `python 02_q_learning/walkthrough.py --stage 1` (then `--stage 2`).
+
 ---
 
 ## 1. Where we are
