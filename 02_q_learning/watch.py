@@ -6,6 +6,7 @@ Run from the repository root, after training with `q_learning.py --env sc2`:
     python 02_q_learning/watch.py --random     # compare with a random marine
     python 02_q_learning/watch.py --show-q     # also show the state grid and Q values live
     python 02_q_learning/watch.py --grid       # draw the state grid on the game itself
+    python 02_q_learning/watch.py --grid --q-table 03_dqn/results/sc2_dqn_q_table.npy   # watch the DQN
 """
 import argparse
 import random
@@ -160,9 +161,11 @@ if __name__ == "__main__":
                         help="open a second window with the state grid and Q values")
     parser.add_argument("--grid", action="store_true",
                         help="draw the state grid and Q values on the game itself")
+    parser.add_argument("--q-table", type=Path, default=ROOT / "02_q_learning" / "results" / "sc2_q_table.npy",
+                        help="which Q-table to play, e.g. 03_dqn/results/sc2_dqn_q_table.npy")
     args = parser.parse_args()
 
-    q_path = ROOT / "02_q_learning" / "results" / "sc2_q_table.npy"
+    q_path = args.q_table
     if (args.show_q or args.grid or not args.random) and not q_path.exists():
         sys.exit(f"{q_path} not found. Train first: python 02_q_learning/q_learning.py --env sc2")
     Q = np.load(q_path) if q_path.exists() else None

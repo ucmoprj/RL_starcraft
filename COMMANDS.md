@@ -93,3 +93,37 @@ python 02_q_learning/q_learning.py --env gridworld --gamma 0.99
 
 Outputs are written to `02_q_learning/results/`. Training in StarCraft II overwrites
 `sc2_q_table.npy`, so copy it first if you want to keep it.
+
+---
+
+## Lesson 3: Deep Q-Networks
+
+Warm-up (table vs function, every number printed):
+
+```bash
+python 03_dqn/walkthrough.py --stage 1
+python 03_dqn/walkthrough.py --stage 2
+```
+
+GridWorld:
+
+```bash
+python 03_dqn/dqn.py --env gridworld
+```
+
+StarCraft II:
+
+```bash
+python 03_dqn/dqn.py --env sc2 --episodes 300                 # [SC2] train, ~8-10 min
+python 03_dqn/compare.py                                      # Q-table vs DQN on all 289 states
+python 02_q_learning/watch.py --grid --q-table 03_dqn/results/sc2_dqn_q_table.npy   # [SC2] watch the DQN
+```
+
+Do replay and the target network matter? (section 10):
+
+```bash
+python 03_dqn/dqn.py --env sc2 --episodes 300 --no-replay     # [SC2]
+python 03_dqn/dqn.py --env sc2 --episodes 300 --no-target     # [SC2]
+```
+
+Outputs are written to `03_dqn/results/`.

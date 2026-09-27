@@ -647,4 +647,4 @@ Sutton & Barto, chapter 6.5.
 
 **Further reading:** Sutton & Barto, chapter 6 (Temporal-difference learning).
 
-**Previous:** [← Lesson 1](../01_rl_basics/) · **Next:** Lesson 3 — Deep Q-networks (coming soon)
+**Previous:** [← Lesson 1](../01_rl_basics/) · **Next:** [Lesson 3 — Deep Q-networks →](../03_dqn/)

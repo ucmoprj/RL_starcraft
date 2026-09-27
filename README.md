@@ -26,7 +26,7 @@ deep learning experience is needed.
 | 0 | [Setup](00_setup/) | — | StarCraft II | ✅ |
 | 1 | [The language of RL](01_rl_basics/) | policy evaluation, value iteration | GridWorld | ✅ |
 | 2 | [Learning from experience](02_q_learning/) | Q-learning | GridWorld → MoveToBeacon | ✅ |
-| 3 | Deep Q-networks | DQN | CollectMineralShards | planned |
+| 3 | [Deep Q-networks](03_dqn/) | DQN | GridWorld → MoveToBeacon → CollectMineralShards | in progress |
 | 4 | Learning a policy directly | REINFORCE | CollectMineralShards | planned |
 | 5 | Actor and critic | A2C | DefeatRoaches | planned |
 | 6 | Stable policy updates | PPO | DefeatRoaches | planned |
@@ -48,6 +48,7 @@ RL_starcraft/
 ├── 00_setup/        installation guide and a check script
 ├── 01_rl_basics/    lesson notes + code
 ├── 02_q_learning/   lesson notes + code + results/
+├── 03_dqn/          lesson notes + code + results/
 ├── envs/            the environments: GridWorld and MoveToBeacon
 └── common/          plotting helpers
 ```
