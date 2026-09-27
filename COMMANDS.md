@@ -17,6 +17,11 @@ cd RL_starcraft
 
 macOS: `source .venv/bin/activate`
 
+Windows PowerShell may refuse with *"running scripts is disabled on this system"*.
+Either skip activation and write `.venv\Scripts\python.exe` wherever this page says
+`python`, or allow local scripts once with
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
 ---
 
 ## Lesson 0: Setup (once)
@@ -72,6 +77,9 @@ StarCraft II:
 python 02_q_learning/q_learning.py --env sc2 --episodes 300   # [SC2] train, ~6-7 min
 python 02_q_learning/watch.py                                 # [SC2] watch the trained marine
 python 02_q_learning/watch.py --random                        # [SC2] compare: random marine
+python 02_q_learning/watch.py --grid                          # [SC2] state grid + Q values drawn on the game
+python 02_q_learning/watch.py --show-q                        # [SC2] extra window: state grid + Q bar chart
+python 02_q_learning/watch.py --grid --random                 # [SC2] grid view of a random marine
 ```
 
 Experiments (section 9):

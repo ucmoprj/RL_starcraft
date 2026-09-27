@@ -363,7 +363,17 @@ in section 9 explores the state size.
 ```bash
 python 02_q_learning/watch.py
 python 02_q_learning/watch.py --random     # for comparison
+python 02_q_learning/watch.py --grid       # draw the state grid and Q values on the game
+python 02_q_learning/watch.py --show-q     # plus a live window: state grid and Q bar chart
 ```
+
+With `--grid`, the 17 × 17 state grid is painted into the game around the marine,
+using StarCraft II's debug-draw feature. It is drawn only for you: the agent's
+observations do not change. The grid moves with the marine, because the state is
+relative to it. The orange box is the beacon's cell (the current state). The 8 numbers
+around the marine are $`Q(s, \cdot)`$, and the chosen one is in green. Far from the
+beacon the numbers are close to 0: those states were rarely visited, so the table
+knows little about them (section 10).
 
 ### What you are watching, and who does what
 
