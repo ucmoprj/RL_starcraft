@@ -360,6 +360,13 @@ in section 9 explores the state size.
 
 ▶ **Watch the trained marine** at human speed:
 
+
+
+https://github.com/user-attachments/assets/696cbc6d-9177-4175-b187-a4a940bfe145
+
+
+
+
 ```bash
 python 02_q_learning/watch.py
 python 02_q_learning/watch.py --random     # for comparison
