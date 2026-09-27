@@ -34,6 +34,7 @@ deep learning experience is needed.
 ## How to use this course
 
 1. Follow [Lesson 0](00_setup/) to install everything.
+   Just want the commands? See [COMMANDS.md](COMMANDS.md).
 2. Read each lesson's `README.md` from top to bottom. Run the commands as you meet them.
 3. Before running an experiment, **predict** what will happen. Then check.
 4. Do the exercises at the end of each lesson. Answers are hidden under "Answers".
