@@ -17,8 +17,9 @@
 >
 > Or locally: `python 02_q_learning/walkthrough.py --stage 1` (then `--stage 2`).
 >
-> **Prefer to watch it?** Download [`q_learning_lab.html`](q_learning_lab.html) and open it in your
-> browser. You press *Step* and watch the marine move. Every update is shown as a formula
+> **Prefer to watch it?** Open the **[Q-Learning Lab](https://ucmoprj.github.io/RL_starcraft/02_q_learning/q_learning_lab.html)**
+> in your browser. It is also in this folder as [`q_learning_lab.html`](q_learning_lab.html) if you want to use it offline.
+> You press *Step* and watch the marine move. Every update is shown as a formula
 > with the real numbers filled in, and a log records each calculation. It covers the same corridor and the
 > 5 × 5 GridWorld used below.
 
