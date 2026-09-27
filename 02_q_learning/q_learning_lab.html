@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Q-Learning Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;700&display=swap">
+<style>
+:root {
+  --bg: #EDF0F3;
+  --surface: #FFFFFF;
+  --ink: #18212C;
+  --muted: #5A6676;
+  --line: #D3DAE2;
+  --cell: #F7F9FB;
+  --val: #1C7C8F;
+  --val-ink: #0F5664;
+  --beacon: #C98300;
+  --explore: #B03B74;
+  --wall: #3A4553;
+  --marine: #20446E;
+  --flash: #FFE08A;
+  --c-g: #6A4BB0;
+  --c-a: #1C7C8F;
+  --btn: #20446E;
+  --btn-ink: #FFFFFF;
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --display: "Chakra Petch", "IBM Plex Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0F151C; --surface: #17202A; --ink: #E2E8EF; --muted: #95A3B4; --line: #2A3643;
+    --cell: #1C2632; --val: #3FB0C6; --val-ink: #9FE3F0; --beacon: #F0B43C; --explore: #E77AAE;
+    --wall: #6B7888; --marine: #9CC4F2; --flash: #6B5716; --c-g: #B9A2F2; --c-a: #3FB0C6; --btn: #9CC4F2; --btn-ink: #0F151C;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0F151C; --surface: #17202A; --ink: #E2E8EF; --muted: #95A3B4; --line: #2A3643;
+  --cell: #1C2632; --val: #3FB0C6; --val-ink: #9FE3F0; --beacon: #F0B43C; --explore: #E77AAE;
+  --wall: #6B7888; --marine: #9CC4F2; --flash: #6B5716; --c-g: #B9A2F2; --c-a: #3FB0C6; --btn: #9CC4F2; --btn-ink: #0F151C;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 16px; }
+h1 { font-family: var(--display); font-size: 26px; font-weight: 600; margin: 0; letter-spacing: .02em; }
+h1 small { font-family: var(--sans); font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 8px; letter-spacing: 0; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+.main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.col { display: grid; gap: 16px; }
+
+/* segmented + buttons */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; font: 500 13px var(--sans); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); }
+.row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.btn { border: 1px solid var(--btn); background: var(--btn); color: var(--btn-ink); border-radius: 8px; padding: 8px 14px; font: 600 14px var(--sans); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--btn); }
+.btn:disabled { opacity: .45; cursor: default; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--beacon); outline-offset: 2px; }
+.label { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+
+/* board */
+.stage { display: grid; gap: 12px; }
+.board { position: relative; display: grid; margin-inline: auto; width: 100%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.board.corridor { max-width: 560px; }
+.board.grid { max-width: 460px; }
+.cell { position: relative; aspect-ratio: 1; box-shadow: inset 0 0 0 1px var(--line); transition: background-color .4s; font-family: var(--mono); }
+.cell.wall { background: repeating-linear-gradient(45deg, var(--wall) 0 6px, transparent 6px 12px), var(--cell); }
+.cell .idx { position: absolute; left: 4px; top: 2px; font-size: 10px; color: var(--muted); }
+.q { position: absolute; font-size: 11px; padding: 0 3px; border-radius: 3px; color: var(--muted); transition: background-color .5s; font-variant-numeric: tabular-nums; }
+.q.best { color: var(--val-ink); font-weight: 600; }
+.q.flash { background: var(--flash); color: var(--ink); }
+.q.up { top: 3px; left: 50%; transform: translateX(-50%); }
+.q.down { bottom: 3px; left: 50%; transform: translateX(-50%); }
+.q.left { left: 3px; top: 50%; transform: translateY(-50%); }
+.q.right { right: 3px; top: 50%; transform: translateY(-50%); }
+.board.corridor .q { font-size: 13px; }
+.arrow { position: absolute; inset: 0; display: grid; place-items: center; font-size: 28px; color: var(--val-ink); opacity: .55; pointer-events: none; }
+.board.grid .arrow { font-size: 22px; }
+.goal-ring { position: absolute; inset: 22%; border-radius: 50%; border: 3px solid var(--beacon); box-shadow: 0 0 0 5px color-mix(in srgb, var(--beacon) 25%, transparent); }
+.goal-ring::after { content: "B"; position: absolute; inset: 0; display: grid; place-items: center; font: 600 14px var(--display); color: var(--beacon); }
+.marine { position: absolute; display: grid; place-items: center; pointer-events: none; transition: left .28s ease, top .28s ease; z-index: 2; }
+.marine span { width: 42%; aspect-ratio: 1; border-radius: 50%; background: var(--marine); color: var(--bg); display: grid; place-items: center; font: 600 13px var(--display); box-shadow: 0 2px 6px rgb(0 0 0 / .25); }
+.marine.explore span { background: var(--explore); }
+.marine.win span { background: var(--beacon); }
+@media (prefers-reduced-motion: reduce) { .marine, .cell, .q { transition: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); justify-content: center; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+
+/* controls */
+.sliders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 520px) { .sliders { grid-template-columns: 1fr; } }
+.slider label { display: flex; justify-content: space-between; font-size: 13px; }
+.slider label b { font-family: var(--mono); font-weight: 600; }
+.slider input { width: 100%; accent-color: var(--val); }
+.slider p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.stat { border-left: 2px solid var(--line); padding-left: 8px; }
+.stat b { display: block; font: 600 20px var(--display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+
+/* narration */
+.narr h2 { font-family: var(--display); font-weight: 600; font-size: 16px; letter-spacing: .02em; }
+.steps3 { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.steps3 li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.steps3 .n { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--val); color: var(--val-ink); display: grid; place-items: center; font: 600 12px var(--display); }
+.steps3 p { margin: 0; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 0 6px; border-radius: 4px; margin-right: 4px; }
+.tag.explore { background: color-mix(in srgb, var(--explore) 18%, transparent); color: var(--explore); }
+.tag.greedy { background: color-mix(in srgb, var(--val) 18%, transparent); color: var(--val-ink); }
+.tag.win { background: color-mix(in srgb, var(--beacon) 22%, transparent); color: var(--beacon); }
+.bar { position: relative; height: 34px; margin: 10px 4px 2px; }
+.bar .track { position: absolute; left: 0; right: 0; top: 14px; height: 4px; border-radius: 2px; background: var(--line); }
+.bar .move { position: absolute; top: 14px; height: 4px; background: var(--val); border-radius: 2px; transition: left .4s, width .4s; }
+.bar .mk { position: absolute; top: 8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; transition: left .4s; }
+.bar .mk.old { border: 2px solid var(--muted); background: var(--surface); }
+.bar .mk.new { background: var(--val); }
+.bar .mk.tgt { border-radius: 2px; transform: rotate(45deg) scale(.8); background: var(--beacon); }
+.bar .ends { position: absolute; top: 22px; left: 0; right: 0; display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--muted); }
+.barkey { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.barkey i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; border-radius: 50%; }
+.math { margin-top: 8px; font: 13px var(--mono); background: var(--cell); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: pre; }
+.note { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.what { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); margin-top: 14px; padding-top: 10px; }
+.what b { color: var(--ink); }
+
+/* guide */
+.guide ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; counter-reset: m; }
+.mission { border: 1px solid var(--line); border-radius: 8px; }
+.mission > button.head { width: 100%; display: flex; gap: 10px; align-items: center; background: none; border: 0; padding: 8px 10px; font: 500 14px var(--sans); color: var(--ink); text-align: left; cursor: pointer; }
+.mission .num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--cell); border: 1px solid var(--line); display: grid; place-items: center; font: 600 12px var(--display); }
+.mission.open { border-color: var(--val); }
+.mission.open .num { background: var(--val); color: var(--surface); border-color: var(--val); }
+.mission .body { padding: 0 12px 12px 42px; display: grid; gap: 8px; }
+.mission .body p { margin: 0; }
+.mission .q { position: static; font: 600 14px var(--sans); color: var(--ink); padding: 0; transform: none; }
+details summary { cursor: pointer; color: var(--val-ink); font-size: 13px; }
+details p { margin-top: 4px !important; font-size: 14px; }
+
+/* chart */
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font: 10px var(--mono); }
+/* formula card */
+.fx { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.fx .rule { background: var(--cell); padding: 8px 10px; font: 13px var(--mono); overflow-x: auto; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.fx table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fx td { padding: 6px 10px; vertical-align: top; border-top: 1px solid var(--line); }
+.fx tr:first-child td { border-top: 0; }
+.fx td:first-child { white-space: nowrap; color: var(--muted); font-size: 12px; width: 1%; }
+.fx .calc { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.fx .why { display: block; font-family: var(--sans); font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cr { color: var(--beacon); font-weight: 600; }
+.cg { color: var(--c-g); font-weight: 600; }
+.ca { color: var(--c-a); font-weight: 600; }
+.off { opacity: .45; text-decoration: line-through; }
+
+/* history */
+.hist-wrap { max-height: 320px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.hist { width: 100%; border-collapse: collapse; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+.hist th { position: sticky; top: 0; background: var(--cell); font: 600 11px var(--sans); color: var(--muted); text-align: right; padding: 6px 8px; white-space: nowrap; }
+.hist td { text-align: right; padding: 4px 8px; border-top: 1px solid var(--line); white-space: nowrap; }
+.hist th:nth-child(-n+3), .hist td:nth-child(-n+3) { text-align: left; }
+.hist tr.latest td { background: color-mix(in srgb, var(--flash) 45%, transparent); }
+.hist tr.sep td { text-align: left; color: var(--muted); font-family: var(--sans); font-style: italic; }
+.hist .up { color: var(--val-ink); }
+footer { margin-top: 20px; font-size: 12px; color: var(--muted); }
+footer a { color: var(--val-ink); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Q-Learning Lab <small id="subtitle"></small></h1>
+  </header>
+
+  <div class="main">
+    <div class="col">
+      <section class="panel stage">
+        <div class="row" style="justify-content: space-between;">
+          <div class="seg" role="group" id="world-seg">
+            <button type="button" data-world="corridor"></button>
+            <button type="button" data-world="grid"></button>
+          </div>
+          <div class="seg" role="group" id="mode-seg">
+            <button type="button" data-mode="guided"></button>
+            <button type="button" data-mode="learn"></button>
+          </div>
+        </div>
+        <div id="board" class="board"></div>
+        <div class="legend" id="legend"></div>
+        <div class="row">
+          <button class="btn" id="b-step" type="button"></button>
+          <button class="btn ghost" id="b-play" type="button"></button>
+          <button class="btn ghost" id="b-episode" type="button"></button>
+          <button class="btn ghost" id="b-train" type="button"></button>
+          <button class="btn ghost" id="b-reset" type="button"></button>
+        </div>
+        <div class="row">
+          <span class="label" id="speed-label"></span>
+          <div class="seg" role="group" id="speed-seg">
+            <button type="button" data-speed="900"></button>
+            <button type="button" data-speed="350"></button>
+            <button type="button" data-speed="60"></button>
+          </div>
+        </div>
+        <div class="stats" id="stats"></div>
+      </section>
+
+      <section class="panel">
+        <div class="sliders">
+          <div class="slider">
+            <label for="s-eps"><span id="l-eps"></span><b id="v-eps"></b></label>
+            <input id="s-eps" type="range" min="0" max="1" step="0.05">
+            <p id="d-eps"></p>
+          </div>
+          <div class="slider">
+            <label for="s-alpha"><span id="l-alpha"></span><b id="v-alpha"></b></label>
+            <input id="s-alpha" type="range" min="0.05" max="1" step="0.05">
+            <p id="d-alpha"></p>
+          </div>
+          <div class="slider">
+            <label for="s-gamma"><span id="l-gamma"></span><b id="v-gamma"></b></label>
+            <input id="s-gamma" type="range" min="0" max="0.99" step="0.01">
+            <p id="d-gamma"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel chart">
+        <h2 id="chart-title"></h2>
+        <div id="chart"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel narr" aria-live="polite">
+        <h2 id="narr-title"></h2>
+        <div id="narr"></div>
+        <div class="what" id="what"></div>
+      </section>
+
+      <section class="panel">
+        <h2 id="hist-title"></h2>
+        <p class="note" id="hist-note" style="margin:0 0 8px;"></p>
+        <div class="hist-wrap" id="hist"></div>
+      </section>
+
+      <section class="panel guide">
+        <h2 id="guide-title"></h2>
+        <ol id="missions"></ol>
+      </section>
+    </div>
+  </div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+(() => {
+// ---------------------------------------------------------------- worlds
+const WORLDS = {
+  corridor: { w: 4, h: 1, walls: [], start: [0, 0], goal: [3, 0],
+              actions: [[-1, 0], [1, 0]], dirs: ["left", "right"], maxSteps: 100, shortest: 3 },
+  grid:     { w: 5, h: 5, walls: [[2, 1], [2, 2]], start: [1, 2], goal: [4, 4],
+              actions: [[0, -1], [1, 0], [0, 1], [-1, 0]], dirs: ["up", "right", "down", "left"], maxSteps: 50, shortest: 5 },
+};
+const ARROWS = { up: "↑", right: "→", down: "↓", left: "←" };
+
+// ---------------------------------------------------------------- text
+const T = {
+  en: {
+    subtitle: "Watch a marine learn its way to the beacon",
+    corridor: "Corridor (4)", grid: "Grid 5×5",
+    guided: "Guided", learn: "Learn on its own",
+    step: "Step", play: "▶ Play", pause: "❚❚ Pause", episode: "Finish episode",
+    train: "Train 100 episodes", reset: "Start over",
+    speed: "Speed", slow: "Slow", normal: "Normal", fast: "Fast",
+    stEp: "Episode", stSteps: "Steps so far", stLast: "Last episode", stBest: "Shortest path",
+    lEps: "Explore rate ε", dEps: "With this chance the marine tries a random direction.",
+    lAlpha: "Learning rate α", dAlpha: "How far each update moves toward the target. 0.5 = half the gap.",
+    lGamma: "Discount γ", dGamma: "Worth of a reward one step later. 0.9 = 90% per step.",
+    chartTitle: "Steps taken in each episode",
+    chartEmpty: "Finish one episode to start the chart.",
+    chartShort: n => `shortest ${n}`,
+    legendVal: "darker cell = higher expected score",
+    legendArrow: "big arrow = direction it currently thinks is best",
+    legendNum: "small numbers = score (Q) of each direction",
+    narrTitle: "What just happened",
+    fxMax: "① best score in next cell", fxTarget: "② target y", fxErr: "③ error δ", fxNew: "④ new score",
+    fxEnded: "The episode ended, so there is no next cell → 0",
+    whyMax: c => `the largest of the scores in the next cell (${c})`,
+    whyTargetEnd: "It ended at the beacon, so there is no future. <b class=\"cg\">γ</b> is not used.",
+    whyTarget: "<b class=\"cg\">γ</b>: the next cell is one step later, so its score is discounted.",
+    whyErr: "how far below (+) or above (−) the target the old score was",
+    whyNew: a => `<b class="ca">α</b>: only ${Math.round(a * 100)}% of the error is applied.`,
+    histTitle: "Calculation log",
+    histNote: "One row = one update. The latest step is at the top.",
+    histEmpty: "Press Step and the calculations collect here.",
+    histCols: ["#", "ep", "from → direction", "r", "γ·maxQ(s′)", "target y", "old Q", "α·δ", "new Q"],
+    histTrained: n => `Trained ${n} episodes quickly (individual steps not logged)`,
+    what: "<b>What is a score (Q)?</b> The small numbers on a cell's edges are the marine's guess of \"how much reward will I collect if I go this way from here?\". They all start at 0: it knows nothing. Each step, the marine corrects one of these numbers. That is all learning is.",
+    idle: "<p>Nothing has happened yet. Press <b>Step</b>. If this is your first time, start with mission 1 in <b>Follow along</b>.</p>",
+    newEp: n => `<p><span class="tag greedy">New episode</span> The marine is back at the start. Episode ${n} begins. The scores are kept.</p>`,
+    trained: n => `<p>Trained ${n} episodes without animation. Look at the colours and arrows, then press <b>Play</b> to see how well it does now.</p>`,
+    title: (ep, n) => `Episode ${ep} · step ${n}`,
+    cell: (w, x, y) => w.h === 1 ? `cell ${x}` : `cell (${x},${y})`,
+    dirTo: { up: "up", right: "right", down: "down", left: "left" },
+    dirName: { up: "up", right: "right", down: "down", left: "left" },
+    s1: (c, d) => `<b>Choose</b> · In ${c} the marine goes <b>${d}</b>.`,
+    why: {
+      greedy: `<span class="tag greedy">Exploit</span>This direction had the highest score it has learned so far.`,
+      tie: `<span class="tag greedy">Tie</span>Several directions share the highest score, so it picked one of them at random.`,
+      explore: e => `<span class="tag explore">Explore</span>The ${Math.round(e * 100)}% chance came up, so it picked a random direction whatever the scores say.`,
+      guided: `<span class="tag greedy">Guided</span>In guided mode it always takes the fastest way to the beacon.`,
+    },
+    s2: { win: `<b>Result</b> · <span class="tag win">Beacon!</span> Reward <b>+1</b>, and the episode ends.`,
+          wall: c => `<b>Result</b> · Blocked by a wall or the edge, still in ${c}. Reward 0.`,
+          move: c => `<b>Result</b> · Arrived in ${c}. Reward 0.`,
+          timeout: n => ` The step limit (${n}) is reached, so the episode ends.` },
+    s3: (c, d) => `<b>Learn</b> · Correct the score of "${d} from ${c}".`,
+    tgtWin: t => `Target = the reward 1. The episode ended here, so there is no future to add. → <b>${t}</b>`,
+    tgt: (r, g, f, t) => `Target = reward ${r} + ${g} × (best score in the next cell ${f}) = <b>${t}</b>`,
+    mv: (o, a, n) => `Move from ${o} toward the target by ${Math.round(a * 100)}% of the gap → <b>${n}</b>`,
+    same: `The target equals the old score, so nothing changed. There was no reward, and it knows nothing about the next cell yet.`,
+    kOld: "old score", kTgt: "target", kNew: "new score",
+    guideTitle: "Follow along",
+    setup: "Start with this setup",
+    answer: "Show answer",
+    missions: [
+      { t: "One step at a time",
+        b: "In guided mode the marine always walks right. Press <b>Step</b> three times and read the explanation above.",
+        q: "The first two steps change no score at all. Why?",
+        a: "The reward was 0 and the next cell's score was still 0, so the target was 0. Only the last step, which got the real reward (+1), creates a score." },
+      { t: "Scores flow backwards",
+        b: "Keep the setup and keep pressing <b>Step</b> through episodes 2 and 3. Watch which cells get coloured.",
+        q: "In which direction does the colour spread, episode by episode?",
+        a: "From the beacon back toward the start, one cell per episode. Cell 1 never receives a reward itself; it learns by borrowing cell 2's score. This is called bootstrapping." },
+      { t: "Finding the way alone",
+        b: "Now the marine does not know which way is good. Press <b>Play</b> and watch the chart below. A pink marine is exploring.",
+        q: "Why are the first episodes long, and why do later ones take about 3 steps?",
+        a: "At first all scores are 0 and tied, so it wanders at random. Once the right-hand scores grow, it starts choosing right. The occasional step back is exploration (ε)." },
+      { t: "On the 5×5 grid",
+        b: "Press <b>Train 100 episodes</b>, then <b>Play</b>. The big arrow in each cell is the route the marine learned.",
+        q: "Arrows far from the start (e.g. the top-right corner) are sometimes odd. Why?",
+        a: "The marine rarely goes there, so it had little chance to learn. Tabular Q-learning only knows the cells it has experienced. This limit is why Lesson 3 switches to a neural network (DQN)." },
+      { t: "Change the settings",
+        b: "Set γ to 0.5 with the slider, press <b>Start over</b>, then <b>Train 100 episodes</b>. Also try ε = 0 and ε = 1.",
+        q: "With γ = 0.5, what happens to the colour of cells far from the beacon?",
+        a: "It fades much faster: each extra step halves the score. Far-off rewards matter less." },
+    ],
+    footer: `A companion to <a href="https://github.com/ucmoprj/RL_starcraft/tree/main/02_q_learning" target="_blank" rel="noopener">Lesson 2: Q-learning</a>. The grid is the lesson's GridWorld, and the maths is the same as the lesson code (Eq. 3, 4, 5).`,
+  },
+};
+const MISSION_CFG = [
+  { world: "corridor", mode: "guided", eps: 0.3, alpha: 0.5, gamma: 0.9 },
+  null,
+  { world: "corridor", mode: "learn", eps: 0.3, alpha: 0.5, gamma: 0.9 },
+  { world: "grid", mode: "learn", eps: 0.3, alpha: 0.5, gamma: 0.9 },
+  null,
+];
+
+// ---------------------------------------------------------------- state
+const lang = "en";
+const S = {
+  world: "corridor", mode: "guided", eps: 0.3, alpha: 0.5, gamma: 0.9,
+  Q: null, pos: null, ep: 1, steps: 0, done: false, lengths: [], last: null, msg: "idle",
+  timer: null, speed: 350, openMission: 0, flash: null, hist: [], nUpd: 0, logging: true,
+};
+const $ = id => document.getElementById(id);
+const W = () => WORLDS[S.world];
+const idx = (x, y) => y * W().w + x;
+const isWall = (x, y) => W().walls.some(([a, b]) => a === x && b === y);
+const f3 = v => v.toFixed(3);
+const fq = v => (S.world === "grid" ? v.toFixed(2) : v.toFixed(3));
+
+function newQ() { return Array.from({ length: W().w * W().h }, () => new Array(W().actions.length).fill(0)); }
+
+function resetAll() {
+  stop();
+  S.Q = newQ(); S.pos = [...W().start]; S.ep = 1; S.steps = 0; S.done = false;
+  S.lengths = []; S.last = null; S.msg = "idle"; S.flash = null; S.hist = []; S.nUpd = 0;
+  computeDist();
+}
+
+// distance to goal for guided mode
+let DIST = null;
+function computeDist() {
+  const w = W(); DIST = new Array(w.w * w.h).fill(Infinity);
+  const q = [w.goal]; DIST[idx(...w.goal)] = 0;
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of w.actions) {
+      const nx = x - dx, ny = y - dy;
+      if (nx < 0 || ny < 0 || nx >= w.w || ny >= w.h || isWall(nx, ny)) continue;
+      if (DIST[idx(nx, ny)] > DIST[idx(x, y)] + 1) { DIST[idx(nx, ny)] = DIST[idx(x, y)] + 1; q.push([nx, ny]); }
+    }
+  }
+}
+
+function move([x, y], a) {
+  const w = W(); const [dx, dy] = w.actions[a];
+  const nx = x + dx, ny = y + dy;
+  if (nx < 0 || ny < 0 || nx >= w.w || ny >= w.h || isWall(nx, ny)) return { p: [x, y], bumped: true };
+  return { p: [nx, ny], bumped: false };
+}
+
+function chooseAction(p) {
+  const w = W(); const n = w.actions.length;
+  if (S.mode === "guided") {
+    let best = 0, bd = Infinity;
+    for (let a = 0; a < n; a++) { const d = DIST[idx(...move(p, a).p)]; if (d < bd) { bd = d; best = a; } }
+    return { a: best, why: "guided" };
+  }
+  if (Math.random() < S.eps) return { a: Math.floor(Math.random() * n), why: "explore" };
+  const q = S.Q[idx(...p)]; const m = Math.max(...q);
+  const best = q.map((v, i) => [v, i]).filter(([v]) => v === m).map(([, i]) => i);
+  return { a: best[Math.floor(Math.random() * best.length)], why: best.length > 1 ? "tie" : "greedy" };
+}
+
+// one environment step + one Q-learning update (Eq. 3, 4)
+function stepCore() {
+  const w = W(); const s = S.pos;
+  const { a, why } = chooseAction(s);
+  const { p: s2, bumped } = move(s, a);
+  const done = s2[0] === w.goal[0] && s2[1] === w.goal[1];
+  const r = done ? 1 : 0;
+  const qs = S.Q[idx(...s)];
+  const old = qs[a];
+  const nextQ = done ? null : S.Q[idx(...s2)].slice();   // before the update (s2 may equal s)
+  const future = done ? 0 : Math.max(...nextQ);
+  const target = r + S.gamma * future;
+  qs[a] = old + S.alpha * (target - old);
+  S.pos = s2; S.steps++;
+  const timeout = !done && S.steps >= w.maxSteps;
+  if (done || timeout) { S.done = true; S.lengths.push(S.steps); }
+  S.nUpd++;
+  const rec = { s, a, why, s2, r, done, bumped, timeout, old, nextQ, future, target, nv: qs[a], ep: S.ep, n: S.steps, k: S.nUpd, eps: S.eps, alpha: S.alpha, gamma: S.gamma };
+  if (S.logging) { S.hist.unshift(rec); if (S.hist.length > 300) S.hist.pop(); }
+  return rec;
+}
+
+function newEpisode() { S.ep++; S.steps = 0; S.done = false; S.pos = [...W().start]; }
+
+function step() {
+  if (S.done) { newEpisode(); S.last = null; S.msg = "newEp"; S.flash = null; render(); return; }
+  S.last = stepCore(); S.msg = "step"; S.flash = [idx(...S.last.s), S.last.a]; render();
+}
+function finishEpisode() {
+  if (S.done) newEpisode();
+  let last = null;
+  while (!S.done) last = stepCore();
+  S.last = last; S.msg = "step"; S.flash = [idx(...last.s), last.a]; render();
+}
+function train(n) {
+  stop();
+  S.logging = false;
+  for (let i = 0; i < n; i++) { if (S.done) newEpisode(); while (!S.done) stepCore(); }
+  S.logging = true;
+  S.hist.unshift({ sep: n });
+  S.last = null; S.msg = "trained"; S.flash = null; render();
+}
+function play() {
+  if (S.timer) { stop(); return; }
+  S.timer = setInterval(step, S.speed); renderButtons();
+}
+function stop() { if (S.timer) { clearInterval(S.timer); S.timer = null; } renderButtons(); }
+
+// ---------------------------------------------------------------- render
+function renderBoard() {
+  const w = W(); const b = $("board"); const t = T[lang];
+  b.className = "board " + S.world;
+  b.style.gridTemplateColumns = `repeat(${w.w}, minmax(0, 1fr))`;
+  let html = "";
+  for (let y = 0; y < w.h; y++) for (let x = 0; x < w.w; x++) {
+    if (isWall(x, y)) { html += `<div class="cell wall"></div>`; continue; }
+    const isGoal = x === w.goal[0] && y === w.goal[1];
+    const q = S.Q[idx(x, y)]; const m = Math.max(...q);
+    let inner = `<span class="idx">${w.h === 1 ? x : x + "," + y}</span>`;
+    let bg = "var(--cell)";
+    if (isGoal) inner += `<div class="goal-ring"></div>`;
+    else {
+      bg = `color-mix(in srgb, var(--val) ${Math.round(Math.min(1, Math.max(0, m)) * 60)}%, var(--cell))`;
+      const nBest = q.filter(v => v === m).length;
+      q.forEach((v, a) => {
+        const fl = S.flash && S.flash[0] === idx(x, y) && S.flash[1] === a ? " flash" : "";
+        const best = m > 0 && v === m ? " best" : "";
+        inner += `<span class="q ${w.dirs[a]}${best}${fl}">${fq(v)}</span>`;
+      });
+      if (m > 0 && nBest === 1) inner += `<div class="arrow">${ARROWS[w.dirs[q.indexOf(m)]]}</div>`;
+    }
+    html += `<div class="cell" style="background:${bg}">${inner}</div>`;
+  }
+  const L = S.last;
+  const cls = L && L.done ? " win" : L && L.why === "explore" ? " explore" : "";
+  html += `<div class="marine${cls}" style="left:${S.pos[0] * 100 / w.w}%;top:${S.pos[1] * 100 / w.h}%;width:${100 / w.w}%;height:${100 / w.h}%"><span>M</span></div>`;
+  b.innerHTML = html;
+  $("legend").innerHTML = `<span><i style="background:var(--val)"></i>${t.legendVal}</span><span>${t.legendArrow}</span><span>${t.legendNum}</span>`;
+}
+
+function renderNarr() {
+  const t = T[lang]; const L = S.last; const w = W();
+  if (S.msg === "idle") { $("narr-title").textContent = t.narrTitle; $("narr").innerHTML = t.idle; return; }
+  if (S.msg === "newEp") { $("narr-title").textContent = t.narrTitle; $("narr").innerHTML = t.newEp(S.ep); return; }
+  if (S.msg === "trained") { $("narr-title").textContent = t.narrTitle; $("narr").innerHTML = t.trained(100); return; }
+  const cS = t.cell(w, ...L.s), cS2 = t.cell(w, ...L.s2), dir = w.dirs[L.a];
+  $("narr-title").textContent = t.title(L.ep, L.n);
+  const why = L.why === "explore" ? t.why.explore(L.eps) : t.why[L.why];
+  let r2 = L.done ? t.s2.win : L.bumped ? t.s2.wall(cS2) : t.s2.move(cS2);
+  if (L.timeout) r2 += t.s2.timeout(w.maxSteps);
+  const tgt = L.done ? t.tgtWin(f3(L.target)) : t.tgt(L.r, L.gamma, f3(L.future), f3(L.target));
+  const unchanged = Math.abs(L.target - L.old) < 1e-12;
+  const hi = Math.max(1, L.old, L.target, L.nv);
+  const pos = v => `${(v / hi) * 100}%`;
+  const lo = Math.min(L.old, L.nv);
+  const bar = `<div class="bar" aria-hidden="true"><div class="track"></div>
+      <div class="move" style="left:${pos(lo)};width:${pos(Math.abs(L.nv - L.old))}"></div>
+      <div class="mk tgt" style="left:${pos(L.target)}"></div>
+      <div class="mk old" style="left:${pos(L.old)}"></div>
+      <div class="mk new" style="left:${pos(L.nv)}"></div>
+      <div class="ends"><span>0</span><span>${hi.toFixed(hi === 1 ? 0 : 2)}</span></div></div>
+    <div class="barkey"><span><i style="border:2px solid var(--muted)"></i>${t.kOld} ${f3(L.old)}</span><span><i style="background:var(--beacon);border-radius:2px"></i>${t.kTgt} ${f3(L.target)}</span><span><i style="background:var(--val)"></i>${t.kNew} ${f3(L.nv)}</span></div>`;
+  const d = L.target - L.old, g = L.gamma, al = L.alpha;
+  const rule = `Q(s,a) ← Q(s,a) + <span class="ca">α</span> × [ <span class="cr">r</span> + <span class="cg">γ</span> × max Q(s′,·) − Q(s,a) ]`;
+  const maxRow = L.done
+    ? `<span class="calc">max Q(s′,·) = 0</span><span class="why">${t.fxEnded}</span>`
+    : `<span class="calc">max(${L.nextQ.map(f3).join(", ")}) = ${f3(L.future)}</span><span class="why">${t.whyMax(cS2)}</span>`;
+  const tgtRow = L.done
+    ? `<span class="calc">y = <span class="cr">r</span> <span class="off">+ <span class="cg">γ</span> × max Q(s′,·)</span> = <span class="cr">${L.r}</span> = ${f3(L.target)}</span><span class="why">${t.whyTargetEnd}</span>`
+    : `<span class="calc">y = <span class="cr">r</span> + <span class="cg">γ</span> × max Q(s′,·) = <span class="cr">${L.r}</span> + <span class="cg">${g}</span> × ${f3(L.future)} = ${f3(L.target)}</span><span class="why">${t.whyTarget}</span>`;
+  const math = `<div class="fx"><div class="rule">${rule}</div><table>
+    <tr><td>${t.fxMax}</td><td>${maxRow}</td></tr>
+    <tr><td>${t.fxTarget}</td><td>${tgtRow}</td></tr>
+    <tr><td>${t.fxErr}</td><td><span class="calc">δ = y − Q(s,a) = ${f3(L.target)} − ${f3(L.old)} = ${f3(d)}</span><span class="why">${t.whyErr}</span></td></tr>
+    <tr><td>${t.fxNew}</td><td><span class="calc">Q(s,a) ← ${f3(L.old)} + <span class="ca">${al}</span> × ${f3(d)} = <b>${f3(L.nv)}</b></span><span class="why">${t.whyNew(al)}</span></td></tr>
+  </table></div>`;
+  $("narr").innerHTML = `<ol class="steps3">
+    <li><span class="n">1</span><div><p>${t.s1(cS, t.dirTo[dir])}</p><p class="note">${why}</p></div></li>
+    <li><span class="n">2</span><div><p>${r2}</p></div></li>
+    <li><span class="n">3</span><div><p>${t.s3(cS, t.dirName[dir])}</p>
+      ${unchanged ? `<p class="note">${t.same}</p>` : ""}
+      ${bar}${math}</div></li></ol>`;
+}
+
+function renderHist() {
+  const t = T[lang]; const w = W();
+  $("hist-title").textContent = t.histTitle; $("hist-note").textContent = t.histNote;
+  if (!S.hist.length) { $("hist").innerHTML = `<p class="note" style="padding:8px 10px;margin:0">${t.histEmpty}</p>`; return; }
+  const head = `<tr>${t.histCols.map(c => `<th>${c}</th>`).join("")}</tr>`;
+  const rows = S.hist.map((h, i) => {
+    if (h.sep) return `<tr class="sep"><td colspan="9">${t.histTrained(h.sep)}</td></tr>`;
+    const d = h.target - h.old;
+    const gTerm = h.done ? "—" : `${h.gamma}×${h.future.toFixed(3)}`;
+    return `<tr${i === 0 ? ' class="latest"' : ""}><td>${h.k}</td><td>${h.ep}</td>
+      <td>${t.cell(w, ...h.s)} → ${ARROWS[w.dirs[h.a]]}</td><td>${h.r}</td><td>${gTerm}</td>
+      <td>${h.target.toFixed(3)}</td><td>${h.old.toFixed(3)}</td><td>${h.alpha}×${d.toFixed(3)}</td>
+      <td class="${h.nv > h.old ? "up" : ""}">${h.nv.toFixed(3)}</td></tr>`;
+  }).join("");
+  $("hist").innerHTML = `<table class="hist">${head}${rows}</table>`;
+}
+
+function renderStats() {
+  const t = T[lang];
+  const last = S.lengths.length ? S.lengths[S.lengths.length - 1] : "–";
+  $("stats").innerHTML = [[S.ep, t.stEp], [S.steps, t.stSteps], [last, t.stLast], [W().shortest, t.stBest]]
+    .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+}
+
+function renderChart() {
+  const t = T[lang]; const L = S.lengths;
+  if (!L.length) { $("chart").innerHTML = `<p class="note">${t.chartEmpty}</p>`; return; }
+  const Wd = 320, H = 130, pl = 28, pr = 8, pt = 8, pb = 18;
+  const ymax = Math.max(W().shortest * 2, ...L);
+  const n = L.length;
+  const X = i => pl + (n === 1 ? (Wd - pl - pr) / 2 : (i / (n - 1)) * (Wd - pl - pr));
+  const Y = v => pt + (1 - v / ymax) * (H - pt - pb);
+  const pts = L.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  const ys = Y(W().shortest);
+  const lastI = n - 1;
+  $("chart").innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" role="img" aria-label="${t.chartTitle}">
+    <line x1="${pl}" x2="${Wd - pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)"/>
+    <line x1="${pl}" x2="${Wd - pr}" y1="${Y(ymax)}" y2="${Y(ymax)}" stroke="var(--line)" stroke-dasharray="2 3"/>
+    <line x1="${pl}" x2="${Wd - pr}" y1="${ys}" y2="${ys}" stroke="var(--beacon)" stroke-dasharray="4 3"/>
+    <text x="${pl - 4}" y="${Y(0) + 3}" text-anchor="end">0</text>
+    <text x="${pl - 4}" y="${Y(ymax) + 3}" text-anchor="end">${ymax}</text>
+    <text x="${Wd - pr}" y="${ys - 4}" text-anchor="end" style="fill:var(--beacon)">${t.chartShort(W().shortest)}</text>
+    <text x="${pl}" y="${H - 4}">1</text>
+    <text x="${Wd - pr}" y="${H - 4}" text-anchor="end">${n}</text>
+    <polyline points="${pts}" fill="none" stroke="var(--val)" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="${X(lastI)}" cy="${Y(L[lastI])}" r="3" fill="var(--val)"/>
+  </svg>`;
+}
+
+function renderButtons() {
+  const t = T[lang];
+  $("b-play").textContent = S.timer ? t.pause : t.play;
+}
+
+function renderMissions() {
+  const t = T[lang];
+  $("missions").innerHTML = t.missions.map((m, i) => {
+    const open = S.openMission === i;
+    return `<li class="mission${open ? " open" : ""}">
+      <button class="head" type="button" data-m="${i}" aria-expanded="${open}"><span class="num">${i + 1}</span>${m.t}</button>
+      ${open ? `<div class="body"><p>${m.b}</p>
+        ${MISSION_CFG[i] ? `<div><button class="btn ghost" type="button" data-setup="${i}">${t.setup}</button></div>` : ""}
+        <p class="q">${m.q}</p>
+        <details><summary>${t.answer}</summary><p>${m.a}</p></details></div>` : ""}
+    </li>`;
+  }).join("");
+}
+
+function renderStatic() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  $("subtitle").textContent = t.subtitle;
+  document.querySelectorAll("#world-seg button").forEach(b => { b.textContent = t[b.dataset.world]; b.setAttribute("aria-pressed", b.dataset.world === S.world); });
+  document.querySelectorAll("#mode-seg button").forEach(b => { b.textContent = t[b.dataset.mode]; b.setAttribute("aria-pressed", b.dataset.mode === S.mode); });
+  const sp = { 900: t.slow, 350: t.normal, 60: t.fast };
+  document.querySelectorAll("#speed-seg button").forEach(b => { b.textContent = sp[b.dataset.speed]; b.setAttribute("aria-pressed", +b.dataset.speed === S.speed); });
+  $("speed-label").textContent = t.speed;
+  $("b-step").textContent = t.step; $("b-episode").textContent = t.episode; $("b-train").textContent = t.train; $("b-reset").textContent = t.reset;
+  $("l-eps").textContent = t.lEps; $("d-eps").textContent = t.dEps;
+  $("l-alpha").textContent = t.lAlpha; $("d-alpha").textContent = t.dAlpha;
+  $("l-gamma").textContent = t.lGamma; $("d-gamma").textContent = t.dGamma;
+  $("s-eps").value = S.eps; $("s-alpha").value = S.alpha; $("s-gamma").value = S.gamma;
+  $("v-eps").textContent = S.eps.toFixed(2); $("v-alpha").textContent = S.alpha.toFixed(2); $("v-gamma").textContent = S.gamma.toFixed(2);
+  $("s-eps").disabled = S.mode === "guided";
+  $("chart-title").textContent = t.chartTitle;
+  $("what").innerHTML = t.what; $("guide-title").textContent = t.guideTitle; $("footer").innerHTML = t.footer;
+}
+
+function render() { renderStatic(); renderBoard(); renderNarr(); renderHist(); renderStats(); renderChart(); renderButtons(); renderMissions(); }
+
+// ---------------------------------------------------------------- events
+$("b-step").onclick = () => { stop(); step(); };
+$("b-play").onclick = play;
+$("b-episode").onclick = () => { stop(); finishEpisode(); };
+$("b-train").onclick = () => train(100);
+$("b-reset").onclick = () => { resetAll(); render(); };
+document.querySelectorAll("#world-seg button").forEach(b => b.onclick = () => { S.world = b.dataset.world; resetAll(); render(); });
+document.querySelectorAll("#mode-seg button").forEach(b => b.onclick = () => { S.mode = b.dataset.mode; render(); });
+document.querySelectorAll("#speed-seg button").forEach(b => b.onclick = () => {
+  S.speed = +b.dataset.speed; if (S.timer) { clearInterval(S.timer); S.timer = setInterval(step, S.speed); } renderStatic();
+});
+[["s-eps", "eps"], ["s-alpha", "alpha"], ["s-gamma", "gamma"]].forEach(([id, k]) => $(id).oninput = e => { S[k] = +e.target.value; renderStatic(); });
+$("missions").onclick = e => {
+  const h = e.target.closest("[data-m]"); const s = e.target.closest("[data-setup]");
+  if (h) { const i = +h.dataset.m; S.openMission = S.openMission === i ? -1 : i; renderMissions(); }
+  if (s) { Object.assign(S, MISSION_CFG[+s.dataset.setup]); resetAll(); render(); }
+};
+
+resetAll();
+render();
+})();
+</script>
+</body>
+</html>
