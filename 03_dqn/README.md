@@ -259,16 +259,18 @@ The few red arrows left in the DQN's map sit on the outer ring. Those cells are
 special: every beacon farther than 8 cells is clipped onto them (Lesson 2, section 7),
 so one cell stands for many different situations.
 
-▶ **Watch it**, with the state grid and Q values drawn on the game:
+▶ **Watch it** at human speed. The network picks every action:
 
 ```bash
-python 02_q_learning/watch.py --grid --q-table 03_dqn/results/sc2_dqn_q_table.npy
+python 03_dqn/watch_dqn.py                     # watch the trained DQN marine
+python 03_dqn/watch_dqn.py --grid              # state grid and Q values drawn on the game
+python 03_dqn/watch_dqn.py --show-q            # extra window: state grid and Q bar chart
+python 03_dqn/watch_dqn.py --model no_replay   # the network trained without replay (section 10)
+python 03_dqn/watch_dqn.py --random            # compare with a random marine
 ```
 
-`sc2_dqn_q_table.npy` is the network evaluated at all 289 states. The network's input
-is always one of those 289 states, so this table picks exactly the same actions as the
-network would. Compare the numbers far from the beacon with the ones in Lesson 2's
-table.
+With `--grid`, compare the numbers far from the beacon with the ones in Lesson 2's
+table (`python 02_q_learning/watch.py --grid`). They are no longer close to 0.
 
 ---
 

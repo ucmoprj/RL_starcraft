@@ -116,7 +116,11 @@ StarCraft II:
 ```bash
 python 03_dqn/dqn.py --env sc2 --episodes 300                 # [SC2] train, ~8-10 min
 python 03_dqn/compare.py                                      # Q-table vs DQN on all 289 states
-python 02_q_learning/watch.py --grid --q-table 03_dqn/results/sc2_dqn_q_table.npy   # [SC2] watch the DQN
+python 03_dqn/watch_dqn.py                                    # [SC2] watch the trained DQN marine
+python 03_dqn/watch_dqn.py --grid                             # [SC2] state grid + Q values drawn on the game
+python 03_dqn/watch_dqn.py --show-q                           # [SC2] extra window: state grid + Q bar chart
+python 03_dqn/watch_dqn.py --model no_replay                  # [SC2] the network trained without replay
+python 03_dqn/watch_dqn.py --random                           # [SC2] compare: random marine
 ```
 
 Do replay and the target network matter? (section 10):
