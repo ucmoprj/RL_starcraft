@@ -322,6 +322,11 @@ there; the clock just ran out. We do not cut the future off at a time-out.
 python 02_q_learning/q_learning.py --env sc2 --episodes 300
 ```
 
+> **No StarCraft II on this computer?** Train and watch in the browser instead:
+> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ucmoprj/RL_starcraft/blob/main/02_q_learning/sc2_colab.ipynb)
+> Colab downloads the Linux build of the game (~4 GB) each session and has no game
+> window, so the notebook draws the marine and beacon from the game's screen data instead.
+
 ```
 episode   10 | epsilon 0.95 | avg reward   0.30 | avg steps  239.0
 episode   50 | epsilon 0.74 | avg reward   2.80 | avg steps  239.0
