@@ -432,4 +432,5 @@ network can fix it. The cure is a better input, not a better learner.
 learning*, Nature 2015 (the DQN paper). Sutton & Barto, chapter 9 (function
 approximation) and section 11.3 (the deadly triad).
 
-**Previous:** [← Lesson 2](../02_q_learning/) · **Next:** Part 2 of this lesson, CollectMineralShards, where no table fits (coming soon)
+**Previous:** [← Lesson 2](../02_q_learning/) · **Next:** [Lesson 4 — Learning a policy directly →](../04_reinforce/)
+(Part 2 of this lesson, CollectMineralShards, where no table fits, is coming later.)

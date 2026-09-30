@@ -131,3 +131,33 @@ python 03_dqn/dqn.py --env sc2 --episodes 300 --no-target     # [SC2]
 ```
 
 Outputs are written to `03_dqn/results/`.
+
+---
+
+## Lesson 4: REINFORCE
+
+Warm-up (probabilities going up and down, every number printed):
+
+```bash
+python 04_reinforce/walkthrough.py --stage 1
+python 04_reinforce/walkthrough.py --stage 2
+```
+
+GridWorld:
+
+```bash
+python 04_reinforce/reinforce.py --env gridworld
+```
+
+StarCraft II:
+
+```bash
+python 04_reinforce/reinforce.py --env sc2 --episodes 600     # [SC2] train, ~15 min
+python 04_reinforce/compare.py                                # Q-table vs DQN vs REINFORCE on all 289 states
+python 04_reinforce/watch_reinforce.py                        # [SC2] watch it (samples actions)
+python 04_reinforce/watch_reinforce.py --grid                 # [SC2] the 8 probabilities drawn on the game
+python 04_reinforce/watch_reinforce.py --greedy               # [SC2] always the most likely action
+python 04_reinforce/watch_reinforce.py --random               # [SC2] compare: random marine
+```
+
+Outputs are written to `04_reinforce/results/`.
